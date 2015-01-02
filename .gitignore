@@ -1,0 +1,388 @@
+#include <SoftwareSerial.h>
+#define RxD 10
+#define TxD 11
+#define RST 5 
+SoftwareSerial BTSerial(RxD, TxD);
+int abrir=2;
+int cerrar=3;
+int i=2;
+int cerradura=12;
+int gauss=A0;
+int obstaculo=A1;
+int distanciaobstaculo=0;
+int input;
+
+void setup()
+{
+  pinMode(abrir,OUTPUT);
+  pinMode(cerrar,OUTPUT);
+  pinMode(cerradura,OUTPUT);
+  pinMode(RST, OUTPUT);
+  digitalWrite(RST, LOW);
+  digitalWrite(cerradura,HIGH);
+  digitalWrite(RST, HIGH);  
+  BTSerial.begin(9600);
+  BTSerial.flush();
+  delay(500);
+  Serial.begin(9600);
+  Serial.println("A la espera");
+}
+
+void loop()
+{
+  if (BTSerial.available())
+  {
+  char c = BTSerial.read();
+  BTSerial.flush();
+  Serial.println(c);
+  
+   switch(c)
+   {
+   case 'A':
+   
+   digitalWrite(cerradura,LOW);
+   digitalWrite(abrir,HIGH);
+   delay(300);
+   gauss = analogRead(A0);
+    while(gauss>500)
+    {
+     gauss = analogRead(A0);
+     digitalWrite(abrir,HIGH);
+     digitalWrite(cerrar,LOW);
+     Serial.println("Abriendo puerta manual");   
+      input = BTSerial.read(); 
+      if(input=='S')        
+      { 
+       digitalWrite(abrir, LOW); 
+       Serial.println("Puerta parada");
+       break;
+      } 
+      if(input=='C')        
+      { 
+       digitalWrite(abrir, LOW); 
+       delay(2000);
+       digitalWrite(cerrar,HIGH);
+       distanciaobstaculo = analogRead(obstaculo);
+       gauss = analogRead(A0);
+        while(distanciaobstaculo>500)
+        {
+         distanciaobstaculo = analogRead(obstaculo);
+         gauss = analogRead(A0);
+          if(gauss>500)
+          {
+           gauss = analogRead(A0);
+           digitalWrite(cerrar,HIGH);
+           digitalWrite(abrir,LOW);
+           digitalWrite(cerradura,LOW);
+           Serial.println("Cerrando puerta manual");
+           input = BTSerial.read(); 
+           if(input=='S')        
+             { 
+             digitalWrite(cerrar, LOW); 
+             Serial.println("Puerta parada");
+             break;
+             } 
+          }
+          else
+          {
+           digitalWrite(cerrar,LOW);
+           digitalWrite(abrir,LOW); 
+           delay(500);
+           digitalWrite(cerradura,HIGH);
+           Serial.println("Puerta cerrada");
+           delay(200);
+           break;
+          }
+        }
+      if(distanciaobstaculo<500)
+       {
+        digitalWrite(cerrar,LOW);
+        digitalWrite(abrir,LOW);
+        digitalWrite(cerradura,LOW);
+        Serial.println("Obstaculo");
+        delay(500);
+       }
+        break;
+       } 
+   }
+     gauss = analogRead(A0);
+     if(gauss <500)
+     {
+       digitalWrite(abrir,LOW);
+       digitalWrite(cerrar,LOW);
+       gauss = analogRead(A0);
+       Serial.println("Puerta abierta");
+       delay(50);
+      }
+      break;
+     
+     
+     case 'B':
+          
+     digitalWrite(cerradura,LOW);
+     digitalWrite(abrir,HIGH);
+     delay(300);
+     gauss = analogRead(A0);
+      while(gauss>500)
+     {
+      gauss = analogRead(A0);
+      digitalWrite(abrir,HIGH);
+      digitalWrite(cerrar,LOW);
+      Serial.println("Abriendo puerta modo coche");   
+       input = BTSerial.read(); 
+       if(input=='S')        
+       { 
+        gauss = analogRead(A0);
+        digitalWrite(abrir, LOW); 
+        Serial.println("Puerta parada");
+        break;
+       } 
+      delay(50);
+     }
+     gauss = analogRead(A0);
+     if(gauss <500)
+     {
+       digitalWrite(abrir,LOW);
+       digitalWrite(cerrar,LOW);
+       gauss = analogRead(A0);
+       Serial.println("Puerta abierta");
+       delay(100);
+      }
+      distanciaobstaculo = analogRead(obstaculo);
+     while(distanciaobstaculo>500)
+     {
+       distanciaobstaculo = analogRead(obstaculo);
+       if(distanciaobstaculo<500)
+       {
+         Serial.println("Coche");
+        while(distanciaobstaculo<500)
+        {
+         distanciaobstaculo = analogRead(obstaculo);
+         digitalWrite(cerrar,LOW); 
+        }
+         delay(5000);
+         digitalWrite(cerrar,HIGH);
+         delay(300);
+         break;
+       }
+       input = BTSerial.read(); 
+          if(input=='C')        
+          { 
+           digitalWrite(cerrar, HIGH); 
+           Serial.println("Cerrando puerta manual");
+           delay(200);
+           break;
+          }                    
+         delay(100); 
+     }
+      distanciaobstaculo = analogRead(obstaculo);
+      gauss = analogRead(A0);
+       while(distanciaobstaculo>500)
+      {
+       distanciaobstaculo = analogRead(obstaculo);
+       gauss = analogRead(A0);
+        if(gauss>500)
+        {
+         gauss = analogRead(A0);
+         digitalWrite(cerrar,HIGH);
+         digitalWrite(abrir,LOW);
+         digitalWrite(cerradura,LOW);
+         Serial.println("Cerrando puerta modo coche");
+          input = BTSerial.read(); 
+          if(input=='S')        
+          { 
+           digitalWrite(cerrar, LOW); 
+           Serial.println("Puerta parada");
+           break;
+          } 
+         delay(100); 
+        }
+        else
+        {
+         digitalWrite(cerrar,LOW);
+         digitalWrite(abrir,LOW); 
+         delay(500);
+         digitalWrite(cerradura,HIGH);
+         Serial.println("Puerta cerrada");
+         delay(200);
+         break;
+        }
+      }
+    
+     if(distanciaobstaculo<500)
+      {
+       digitalWrite(cerrar,LOW);
+       digitalWrite(abrir,LOW);
+       digitalWrite(cerradura,LOW);
+       Serial.println("Obstaculo");
+       delay(500);
+      }
+      break;
+      
+     
+     case 'C':
+          
+     digitalWrite(cerrar,HIGH);
+     delay(300);
+     distanciaobstaculo = analogRead(obstaculo);
+     gauss = analogRead(A0);
+      while(distanciaobstaculo>500)
+      {
+       distanciaobstaculo = analogRead(obstaculo);
+       gauss = analogRead(A0);
+        if(gauss>500)
+        {
+         gauss = analogRead(A0);
+         digitalWrite(cerrar,HIGH);
+         digitalWrite(abrir,LOW);
+         digitalWrite(cerradura,LOW);
+         Serial.println("Cerrando puerta manual");
+          input = BTSerial.read(); 
+          if(input=='S')        
+          { 
+           digitalWrite(cerrar, LOW); 
+           Serial.println("Puerta parada");
+           break;
+          }                    
+         if(input=='A')
+        {
+         digitalWrite(cerrar,LOW);
+         delay(2000);
+         digitalWrite(abrir,HIGH);
+         gauss = analogRead(A0);
+          while(gauss>500)
+           {
+            gauss = analogRead(A0);
+            digitalWrite(abrir,HIGH);
+            digitalWrite(cerrar,LOW);
+            Serial.println("Abriendo puerta manual");   
+            input = BTSerial.read(); 
+             if(input=='S')        
+              { 
+               digitalWrite(abrir, LOW); 
+               Serial.println("Puerta parada");
+               break;
+              } 
+           }
+         gauss = analogRead(A0);
+           if(gauss <500)
+            {
+             digitalWrite(abrir,LOW);
+             digitalWrite(cerrar,LOW);
+             gauss = analogRead(A0);
+             Serial.println("Puerta abierta");
+             delay(50);
+            }
+            break;
+         } 
+        }
+        else
+        {
+         digitalWrite(cerrar,LOW);
+         digitalWrite(abrir,LOW); 
+         delay(500);
+         digitalWrite(cerradura,HIGH);
+         Serial.println("Puerta cerrada");
+         delay(200);
+         break;
+        }
+      }
+    if(distanciaobstaculo<500)
+     {
+      digitalWrite(cerrar,LOW);
+      digitalWrite(abrir,LOW);
+      digitalWrite(cerradura,LOW);
+      Serial.println("Obstaculo");
+      delay(500);
+     }
+      break;
+      
+   case 'D':
+   
+     digitalWrite(cerradura,LOW);
+     digitalWrite(abrir,HIGH);
+     Serial.println("Abrindo puerta modo persona");
+     delay(2000);
+     digitalWrite(abrir,LOW);
+     Serial.println("Puerta parada");
+     distanciaobstaculo = analogRead(obstaculo);
+     while(distanciaobstaculo>500)
+     {
+       distanciaobstaculo = analogRead(obstaculo);
+       if(distanciaobstaculo<500)
+       {
+         Serial.println("Persona");
+          while(distanciaobstaculo<500)
+           {
+            distanciaobstaculo = analogRead(obstaculo);
+            digitalWrite(cerrar,LOW); 
+           }
+         delay(4000);
+         digitalWrite(cerrar,HIGH);
+         break;
+       }
+       input = BTSerial.read(); 
+          if(input=='C')        
+          { 
+           digitalWrite(cerrar, HIGH); 
+           Serial.println("Cerrando puerta manual");
+           break;
+          }                    
+         delay(100); 
+     }
+     
+     
+     distanciaobstaculo = analogRead(obstaculo);
+     gauss = analogRead(A0);
+      while(distanciaobstaculo>500)
+      {
+       distanciaobstaculo = analogRead(obstaculo);
+       gauss = analogRead(A0);
+        if(gauss>500)
+        {
+         gauss = analogRead(A0);
+         digitalWrite(cerrar,HIGH);
+         digitalWrite(abrir,LOW);
+         digitalWrite(cerradura,LOW);
+         Serial.println("Cerrando puerta modo persona");
+          input = BTSerial.read(); 
+          if(input=='S')        
+          { 
+           digitalWrite(cerrar, LOW); 
+           Serial.println("Puerta parada");
+           break;
+          }                    
+         delay(100); 
+        }
+        else
+        {
+         digitalWrite(cerrar,LOW);
+         digitalWrite(abrir,LOW); 
+         delay(500);
+         digitalWrite(cerradura,HIGH);
+         Serial.println("Puerta cerrada");
+         delay(200);
+         break;
+        }
+      }
+     if(distanciaobstaculo<500)
+     {
+      digitalWrite(cerrar,LOW);
+      digitalWrite(abrir,LOW);
+      digitalWrite(cerradura,LOW);
+      Serial.println("Obstaculo");
+      delay(500);
+     }
+      break;
+      
+     default:
+      for(i=2;i<=4;i++)
+      {
+      digitalWrite(i, LOW);
+      } 
+     }
+   delay(50);
+  }
+}
+
+ 
